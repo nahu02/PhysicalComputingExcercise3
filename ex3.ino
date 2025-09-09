@@ -1,8 +1,8 @@
 #include "GY521.h"
 #include <MovingAverage.h>
 
-int photoSensorPin = A0;   // select the input pin for the potentiometer
-int photoSensorValue = 0;  // variable to store the value coming from the sensor
+int photoSensorPin = A0;
+int ledPin = LED_BUILTIN;
 
 int darknessTreshold = 600;
 float accelerationTreshold = 2.0;
@@ -40,6 +40,8 @@ void setup() {
   accMA.begin();
   lightMA.begin();
 
+  pinMode(ledPin, OUTPUT);
+
   delay(100);
   while (sensor.wakeup() == false)
   {
@@ -59,6 +61,8 @@ void loop() {
   Serial.print("Should the light be on?\t");
   Serial.print(shouldTurnLightOn ? "YES" : "NO");
   Serial.println();
+
+  digitalWrite(ledPin, shouldTurnLightOn ? HIGH : LOW);
 
   delay(1000);
 }
