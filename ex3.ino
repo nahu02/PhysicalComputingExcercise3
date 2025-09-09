@@ -1,4 +1,5 @@
 #include "GY521.h"
+#include <MovingAverage.h>
 
 int photoSensorPin = A0;   // select the input pin for the potentiometer
 int photoSensorValue = 0;  // variable to store the value coming from the sensor
@@ -8,17 +9,18 @@ float accelerationTreshold = 2.0;
 
 GY521 sensor(0x68);
 
-uint32_t counter = 0;
+MovingAverage<float, float> accMA;
+MovingAverage<uint16_t, uint16_t> lightMA;
 
 bool lightAndMoving(float acceleration, int light) {
   bool isMoving = acceleration > accelerationTreshold;
   bool isDark = light < darknessTreshold;
   
-  // char buffer[256];
-  // char acc[10];
-  // dtostrf(acceleration, 2, 2, acc);
-  // snprintf(buffer, sizeof(buffer), "Movement: %s (%s);\tLight: %s (%d)", isMoving ? "moving" : "still", acc, isDark ? "dark" : "light", light);
-  // Serial.println(buffer);
+  char buffer[256];
+  char acc[10];
+  dtostrf(acceleration, 2, 2, acc);
+  snprintf(buffer, sizeof(buffer), "\tMovement: %s (%s)\tLight: %s (%d)", isMoving ? "moving" : "still", acc, isDark ? "dark" : "light", light);
+  Serial.println(buffer);
 
   return isMoving && isDark;
 }
@@ -34,8 +36,9 @@ int readCombinedAcceleration(GY521 sensor) {
 
 void setup() {
   Serial.begin(9600);
-
   Wire.begin();
+  accMA.begin();
+  lightMA.begin();
 
   delay(100);
   while (sensor.wakeup() == false)
@@ -48,16 +51,14 @@ void setup() {
 }
 
 void loop() {
-  photoSensorValue = analogRead(photoSensorPin);
-  int acc = readCombinedAcceleration(sensor);
+  lightMA.add(analogRead(photoSensorPin));
+  accMA.add(readCombinedAcceleration(sensor));
 
-  bool shouldTurnLightOn = lightAndMoving(acc, photoSensorValue);
+  bool shouldTurnLightOn = lightAndMoving(accMA.readAverage(5), lightMA.readWeightedAverage(5));
 
-  Serial.print(counter);
-  Serial.print("\tShould the light be on?\t");
-  Serial.print(shouldTurnLightOn, BIN);
+  Serial.print("Should the light be on?\t");
+  Serial.print(shouldTurnLightOn ? "YES" : "NO");
   Serial.println();
 
-  counter++;
   delay(1000);
 }

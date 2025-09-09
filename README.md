@@ -12,4 +12,5 @@ Vertical only prototype of a bike lamp that turns on when and only when it is bo
 
 ## Software components
 Documentation on the IMU library is available [here](https://github.com/RobTillaart/GY521).
+Documentation on the MovingAverage library is available [here](https://github.com/Zone-of-Engineering-Newcomers/MovingAverage/tree/main/docs).
 
